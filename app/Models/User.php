@@ -13,11 +13,6 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -26,31 +21,36 @@ class User extends Authenticatable
         'type'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    // Relação com empresa
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class);
+    }
+
+    public function hasPermission($permissions)
+    {
+        if (is_array($permissions)) {
+            $count = $this->permissions()->whereIn('name', $permissions)->count();
+            return $count === count($permissions);
+        }
+        return $this->permissions()->where('name', $permissions)->exists();
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
     }
 }
